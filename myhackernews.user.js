@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         myhackernews by jeanlucaslima
+// @name         myhackernews
 // @namespace    http://tampermonkey.net/
 // @version      1.0.0
 // @description  Apply a dark theme to Hacker News and modify navigation links
