@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         myhackernews
 // @namespace    http://tampermonkey.net/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Apply a dark theme to Hacker News and modify navigation links
 // @license      MIT
 // @copyright    jeanlucaslima
@@ -20,6 +20,9 @@
     function addDarkTheme() {
         const style = document.createElement('style');
         style.textContent = `
+            :root {
+                color-scheme: dark;
+            }
             body, tbody {
                 background-color: #1f1f1f;
                 color: #e0e0e0;
@@ -32,7 +35,6 @@
             }
             .pagetop {
                 background-color: #1f1f1f;
-                border-bottom: 1px solid #333;
                 padding: 10px 0;
                 color: #828282;
             }
@@ -51,14 +53,17 @@
             td.title a {
                 color: #ededed;
             }
-            .subtext a {
-                color: #03dac6;
+            td.title a:visited {
+                color: #868686;
             }
             td.title {
                 background-color: #1f1f1f;
             }
             td.subtext {
                 background-color: #1f1f1f;
+            }
+            .subtext a {
+                color: #03dac6;
             }
             .itemlist tr:nth-child(even) td {
                 background-color: #1c1c1c;
@@ -69,7 +74,7 @@
             table {
                 background-color: #1f1f1f !important;
             }
-            .c00, .c00 a:link { color:#626262; }
+            .c00, .c00 a:link { color:#ededed; }
         `;
         document.head.appendChild(style);
     }
