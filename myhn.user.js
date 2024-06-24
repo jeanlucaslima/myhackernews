@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         myhackernews
-// @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @namespace    https://github.com/jeanlucaslima/myhackernews/
+// @version      2.1.0
 // @description  Apply a dark theme to Hacker News and modify navigation links
 // @license      MIT
 // @copyright    jeanlucaslima
@@ -9,73 +9,130 @@
 // @homepageURL  https://github.com/jeanlucaslima/myhackernews/
 // @supportURL   https://github.com/jeanlucaslima/myhackernews/issues
 // @match        https://news.ycombinator.com/*
-// @updateURL    https://openuserjs.org/meta/jeanlucaslima/My_Script.meta.js
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
 
+    const darkTheme = `
+        :root {
+            color-scheme: dark;
+        }
+        body, tbody {
+            background-color: #1f1f1f;
+            color: #e0e0e0;
+        }
+        a {
+            color: #828282;
+        }
+        a:link {
+            color: #828282;
+        }
+        .pagetop {
+            background-color: #1f1f1f;
+            padding: 0;
+            color: #828282;
+        }
+        .pagetop a {
+            color: #ededed;
+        }
+        .pagetop a:visited {
+            color: #828282;
+        }
+        .hnname a {
+            color: #bb86fc;
+        }
+        td {
+            background-color: #1f1f1f;
+        }
+        td.title a {
+            color: #ededed;
+        }
+        td.title a:visited {
+            color: #868686;
+        }
+        td.title {
+            background-color: #1f1f1f;
+        }
+        td.subtext {
+            background-color: #1f1f1f;
+        }
+        .subtext a {
+            color: #03dac6;
+        }
+        .itemlist tr:nth-child(even) td {
+            background-color: #1c1c1c;
+        }
+        .itemlist tr:nth-child(odd) td {
+            background-color: #121212;
+        }
+        table {
+            background-color: #1f1f1f !important;
+        }
+        .c00, .c00 a:link { color:#ededed; }
+    `;
+
+    const newDark = `
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            background-color: #1a202c;
+            margin: 0;
+            padding: 8px;
+        }
+
+        table, tbody {
+            background-color: #2d3848 !important;
+            color: #dddddd;
+        }
+        a {
+            color: #9facbe;
+        }
+        a:link {
+            color: #9facbe;
+        }
+        .pagetop {
+            background-color: #2d3848;
+            padding: 0;
+            color: #9facbe;
+        }
+        .pagetop a {
+            color: #ededed;
+        }
+        .pagetop a:visited {
+            color: #9facbe;
+        }
+        .hnname a {
+            color: #bb86fc;
+        }
+        td {
+            background-color: #2d3848;
+        }
+        td.title a {
+            color: #ededed;
+        }
+        td.title a:visited {
+            color: #7fe0d4;
+        }
+        .subtext a {
+            color: #c8d2dc;
+        }
+        .itemlist tr:nth-child(even) td {
+            background-color: #1c1c1c;
+        }
+        .itemlist tr:nth-child(odd) td {
+            background-color: #121212;
+        }
+        .c00, .c00 a:link { color:#c8d2dc; }
+    `;
+
     // Function to add dark theme styles
-    function addDarkTheme() {
+    function applyTheme(theme) {
         const style = document.createElement('style');
-        style.textContent = `
-            :root {
-                color-scheme: dark;
-            }
-            body, tbody {
-                background-color: #1f1f1f;
-                color: #e0e0e0;
-            }
-            a {
-                color: #828282;
-            }
-            a:link {
-                color: #828282;
-            }
-            .pagetop {
-                background-color: #1f1f1f;
-                padding: 10px 0;
-                color: #828282;
-            }
-            .pagetop a {
-                color: #ededed;
-            }
-            .pagetop a:visited {
-                color: #828282;
-            }
-            .hnname a {
-                color: #bb86fc;
-            }
-            td {
-                background-color: #1f1f1f;
-            }
-            td.title a {
-                color: #ededed;
-            }
-            td.title a:visited {
-                color: #868686;
-            }
-            td.title {
-                background-color: #1f1f1f;
-            }
-            td.subtext {
-                background-color: #1f1f1f;
-            }
-            .subtext a {
-                color: #03dac6;
-            }
-            .itemlist tr:nth-child(even) td {
-                background-color: #1c1c1c;
-            }
-            .itemlist tr:nth-child(odd) td {
-                background-color: #121212;
-            }
-            table {
-                background-color: #1f1f1f !important;
-            }
-            .c00, .c00 a:link { color:#ededed; }
-        `;
+        style.textContent = theme;
         document.head.appendChild(style);
     }
 
@@ -170,6 +227,6 @@
     observer.observe(document.body, { childList: true, subtree: true });
 
     // Run the functions immediately in case the elements are already present
-    addDarkTheme();
+    applyTheme(newDark);
     modifyNav();
   })();
