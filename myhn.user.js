@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         myhackernews
 // @namespace    https://github.com/jeanlucaslima/myhackernews/
-// @version      2.1.0
+// @version      2.5.0
 // @description  Apply a dark theme to Hacker News and modify navigation links
 // @license      MIT
 // @copyright    jeanlucaslima
@@ -15,208 +15,182 @@
 (function() {
     'use strict';
 
-    const darkTheme = `
-        :root {
-            color-scheme: dark;
+    // Theme definitions
+    const themes = {
+        newDark: {
+            '--background-color': '#1a202c',
+            '--table-background-color': '#2d3848',
+            '--text-color': '#dddddd',
+            '--link-color': '#9facbe',
+            '--pagetop-background-color': '#2d3848',
+            '--pagetop-text-color': '#9facbe',
+            '--hnname-color': '#bb86fc',
+            '--title-link-color': '#ededed',
+            '--title-link-visited-color': '#7fe0d4',
+            '--subtext-link-color': '#c8d2dc',
+            '--itemlist-even-bg-color': '#1c1c1c',
+            '--itemlist-odd-bg-color': '#121212',
+            '--c00-color': '#c8d2dc',
+        },
+        darkTheme: {
+            '--background-color': '#1f1f1f',
+            '--table-background-color': '#1f1f1f',
+            '--text-color': '#e0e0e0',
+            '--link-color': '#828282',
+            '--pagetop-background-color': '#1f1f1f',
+            '--pagetop-text-color': '#828282',
+            '--hnname-color': '#bb86fc',
+            '--title-link-color': '#ededed',
+            '--title-link-visited-color': '#868686',
+            '--subtext-link-color': '#03dac6',
+            '--itemlist-even-bg-color': '#1c1c1c',
+            '--itemlist-odd-bg-color': '#121212',
+            '--c00-color': '#ededed',
         }
-        body, tbody {
-            background-color: #1f1f1f;
-            color: #e0e0e0;
-        }
-        a {
-            color: #828282;
-        }
-        a:link {
-            color: #828282;
-        }
-        .pagetop {
-            background-color: #1f1f1f;
-            padding: 0;
-            color: #828282;
-        }
-        .pagetop a {
-            color: #ededed;
-        }
-        .pagetop a:visited {
-            color: #828282;
-        }
-        .hnname a {
-            color: #bb86fc;
-        }
-        td {
-            background-color: #1f1f1f;
-        }
-        td.title a {
-            color: #ededed;
-        }
-        td.title a:visited {
-            color: #868686;
-        }
-        td.title {
-            background-color: #1f1f1f;
-        }
-        td.subtext {
-            background-color: #1f1f1f;
-        }
-        .subtext a {
-            color: #03dac6;
-        }
-        .itemlist tr:nth-child(even) td {
-            background-color: #1c1c1c;
-        }
-        .itemlist tr:nth-child(odd) td {
-            background-color: #121212;
-        }
-        table {
-            background-color: #1f1f1f !important;
-        }
-        .c00, .c00 a:link { color:#ededed; }
-    `;
+    };
 
-    const newDark = `
-        :root {
-            color-scheme: dark;
-        }
+    // Function to generate CSS rules from theme object
+    function generateCSS(theme) {
+        return `
+            :root {
+                color-scheme: ${theme.dark ? 'dark' : 'light'};
+            }
+            body, tbody {
+                background-color: ${theme['--background-color']};
+                color: ${theme['--text-color']};
+            }
+            a {
+                color: ${theme['--link-color']};
+            }
+            a:link {
+                color: ${theme['--link-color']};
+            }
+            .pagetop {
+                background-color: ${theme['--pagetop-background-color']};
+                padding: 0;
+                color: ${theme['--pagetop-text-color']};
+            }
+            .pagetop a {
+                color: ${theme['--pagetop-text-color']};
+            }
+            .pagetop a:visited {
+                color: ${theme['--pagetop-text-color']};
+            }
+            .hnname a {
+                color: ${theme['--hnname-color']};
+            }
+            td {
+                background-color: ${theme['--table-background-color']};
+            }
+            td.title a {
+                color: ${theme['--title-link-color']};
+            }
+            td.title a:visited {
+                color: ${theme['--title-link-visited-color']};
+            }
+            .subtext a {
+                color: ${theme['--subtext-link-color']};
+            }
+            .itemlist tr:nth-child(even) td {
+                background-color: ${theme['--itemlist-even-bg-color']};
+            }
+            .itemlist tr:nth-child(odd) td {
+                background-color: ${theme['--itemlist-odd-bg-color']};
+            }
+            table {
+                background-color: ${theme['--table-background-color']} !important;
+            }
+            .c00, .c00 a:link { color: ${theme['--c00-color']}; }
+        `;
+    }
 
-        body {
-            background-color: #1a202c;
-            margin: 0;
-            padding: 8px;
-        }
-
-        table, tbody {
-            background-color: #2d3848 !important;
-            color: #dddddd;
-        }
-        a {
-            color: #9facbe;
-        }
-        a:link {
-            color: #9facbe;
-        }
-        .pagetop {
-            background-color: #2d3848;
-            padding: 0;
-            color: #9facbe;
-        }
-        .pagetop a {
-            color: #ededed;
-        }
-        .pagetop a:visited {
-            color: #9facbe;
-        }
-        .hnname a {
-            color: #bb86fc;
-        }
-        td {
-            background-color: #2d3848;
-        }
-        td.title a {
-            color: #ededed;
-        }
-        td.title a:visited {
-            color: #7fe0d4;
-        }
-        .subtext a {
-            color: #c8d2dc;
-        }
-        .itemlist tr:nth-child(even) td {
-            background-color: #1c1c1c;
-        }
-        .itemlist tr:nth-child(odd) td {
-            background-color: #121212;
-        }
-        .c00, .c00 a:link { color:#c8d2dc; }
-    `;
-
-    // Function to add dark theme styles
-    function applyTheme(theme) {
+    // Function to apply the theme
+    function applyTheme(themeName) {
+        const theme = themes[themeName];
         const style = document.createElement('style');
-        style.textContent = theme;
+        style.textContent = generateCSS(theme);
         document.head.appendChild(style);
+    }
+
+    // Function to remove links by href
+    function removeLinkByHref(pagetop, href) {
+        const link = pagetop.querySelector(`a[href="${href}"]`);
+        if (link) {
+            const separator = link.previousSibling;
+            if (separator && separator.nodeType === Node.TEXT_NODE && separator.textContent.includes('|')) {
+                pagetop.removeChild(separator);
+            }
+            pagetop.removeChild(link);
+        }
+    }
+
+    // Function to create and append new link
+    function createLink(pagetop, text, href) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = text;
+        pagetop.appendChild(document.createTextNode(' | '));
+        pagetop.appendChild(link);
+    }
+
+    // Function to move the top menu to the bottom and add links
+    function moveTopMenuToBottom(pagetop) {
+        const yclinks = document.createElement('span');
+        yclinks.className = 'yclinks';
+        yclinks.innerHTML = pagetop.innerHTML;
+        pagetop.innerHTML = '';
+
+        const footer = document.createElement('div');
+        footer.style.padding = '20px';
+        footer.appendChild(yclinks);
+        document.body.appendChild(footer);
+
+        return yclinks;
+    }
+
+    // Function to add theme switcher
+    function addThemeSwitcher(footer) {
+        const themeSwitcher = document.createElement('select');
+        themeSwitcher.innerHTML = `
+            <option value="newDark">New Dark</option>
+            <option value="darkTheme">Dark Theme</option>
+        `;
+        themeSwitcher.value = localStorage.getItem('hn-theme') || 'newDark';
+        themeSwitcher.onchange = function() {
+            localStorage.setItem('hn-theme', themeSwitcher.value);
+            location.reload();
+        };
+
+        const themeSwitcherWrapper = document.createElement('span');
+        themeSwitcherWrapper.style.display = 'block';
+        themeSwitcherWrapper.style.marginTop = '10px';
+        themeSwitcherWrapper.style.color = '#ededed';
+        themeSwitcherWrapper.textContent = 'Select Theme: ';
+        themeSwitcherWrapper.appendChild(themeSwitcher);
+        footer.appendChild(themeSwitcherWrapper);
     }
 
     // Function to modify the navigation links
     function modifyNav() {
-
-        // Find the span with class pagetop
-        var pagetop = document.querySelector('span.pagetop');
+        const pagetop = document.querySelector('span.pagetop');
         if (pagetop) {
-            // Remove the "submit" link
-            var submitLink = pagetop.querySelector('a[href="submit"]');
-            if (submitLink) {
+            removeLinkByHref(pagetop, 'submit');
+            removeLinkByHref(pagetop, 'jobs');
 
-                // Remove the separator before the submit link
-                var separator = submitLink.previousSibling;
-                if (separator && separator.nodeType === Node.TEXT_NODE && separator.textContent.includes('|')) {
-                    pagetop.removeChild(separator);
+            const yclinks = moveTopMenuToBottom(pagetop);
+            const path = window.location.pathname;
 
-                }
-                // Remove the submit link
-                pagetop.removeChild(submitLink);
-            } else {
-                console.log('Submit link not found');
-            }
+            if (path !== '/best') createLink(yclinks, 'best', 'best');
+            if (path !== '/active') createLink(yclinks, 'active', 'active');
 
-            // Remove the "jobs" link
-            var jobsLink = pagetop.querySelector('a[href="jobs"]');
-            if (jobsLink) {
-                // Remove the separator before the submit link
-                var jobsSeparator = jobsLink.previousSibling;
-                if (jobsSeparator && jobsSeparator.nodeType === Node.TEXT_NODE && jobsSeparator.textContent.includes('|')) {
-                    pagetop.removeChild(jobsSeparator);
-
-                }
-                // Remove the submit link
-                pagetop.removeChild(jobsLink);
-
-            } else {
-                console.log('Jobs link not found');
-            }
-
-            // Check the current path
-            var path = window.location.pathname;
-
-            // Create and append the "best" link if not on /best
-            if (path !== '/best') {
-                var bestLink = document.createElement('a');
-                bestLink.href = 'best';
-                bestLink.textContent = 'best';
-
-                // Create the separator
-                var separatorBest = document.createTextNode(' | ');
-
-                // Append the separator and the new link
-                pagetop.appendChild(separatorBest);
-                pagetop.appendChild(bestLink);
-
-            }
-
-            // Create and append the "active" link if not on /active
-            if (path !== '/active') {
-                var activeLink = document.createElement('a');
-                activeLink.href = 'active';
-                activeLink.textContent = 'active';
-
-                // Create the separator
-                var separatorActive = document.createTextNode(' | ');
-
-                // Append the separator and the new link
-                pagetop.appendChild(separatorActive);
-                pagetop.appendChild(activeLink);
-
-            }
-
-            // Disconnect the observer after modifications are done
+            addThemeSwitcher(document.body.lastElementChild);
             observer.disconnect();
-        } else {
-            console.log('Span with class pagetop not found');
         }
     }
 
     // Create a MutationObserver to watch for changes in the DOM
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
             if (mutation.addedNodes.length) {
                 modifyNav();
             }
@@ -226,7 +200,8 @@
     // Start observing the document body for added nodes
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Run the functions immediately in case the elements are already present
-    applyTheme(newDark);
+    // Apply the saved theme or default to newDark
+    const savedTheme = localStorage.getItem('hn-theme') || 'newDark';
+    applyTheme(savedTheme);
     modifyNav();
-  })();
+})();
