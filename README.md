@@ -15,7 +15,13 @@ Report bugs at the repo's Issues page.
 
 # Releases
 
-v2.1.0
+### v3.1.0
+
+* Added theme switcher with a dropdown at the bottom of the page
+* Brand new navigation menu on top
+* Several bug fixes
+
+### v2.1.0
 
 * Moved to greasyfork (openuserjs does not allow login)
 * Testing out new themes (with new theme support)

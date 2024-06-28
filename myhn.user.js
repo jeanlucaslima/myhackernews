@@ -2,7 +2,7 @@
 // @name         myhackernews
 // @namespace    https://github.com/jeanlucaslima/myhackernews/
 // @version      2.5.0
-// @description  Apply a dark theme to Hacker News and modify navigation links
+// @description  Apply a dark theme to Hacker News, modify navigation links, and add a custom menu with highlighted active links
 // @license      MIT
 // @copyright    jeanlucaslima
 // @author       jeanlucaslima
@@ -17,7 +17,8 @@
 
     // Theme definitions
     const themes = {
-        newDark: {
+        darkNavy: {
+            dark: true,
             '--background-color': '#1a202c',
             '--table-background-color': '#2d3848',
             '--text-color': '#dddddd',
@@ -31,8 +32,10 @@
             '--itemlist-even-bg-color': '#1c1c1c',
             '--itemlist-odd-bg-color': '#121212',
             '--c00-color': '#c8d2dc',
+            '--active-link-color': '#ff4500'
         },
-        darkTheme: {
+        blackTheme: {
+            dark: true,
             '--background-color': '#1f1f1f',
             '--table-background-color': '#1f1f1f',
             '--text-color': '#e0e0e0',
@@ -46,6 +49,7 @@
             '--itemlist-even-bg-color': '#1c1c1c',
             '--itemlist-odd-bg-color': '#121212',
             '--c00-color': '#ededed',
+            '--active-link-color': '#ff6600'
         }
     };
 
@@ -101,6 +105,10 @@
                 background-color: ${theme['--table-background-color']} !important;
             }
             .c00, .c00 a:link { color: ${theme['--c00-color']}; }
+            .menu a.active {
+                color: ${theme['--active-link-color']};
+                font-weight: bold;
+            }
         `;
     }
 
@@ -112,96 +120,81 @@
         document.head.appendChild(style);
     }
 
-    // Function to remove links by href
-    function removeLinkByHref(pagetop, href) {
-        const link = pagetop.querySelector(`a[href="${href}"]`);
-        if (link) {
-            const separator = link.previousSibling;
-            if (separator && separator.nodeType === Node.TEXT_NODE && separator.textContent.includes('|')) {
-                pagetop.removeChild(separator);
-            }
-            pagetop.removeChild(link);
-        }
-    }
-
     // Function to create and append new link
-    function createLink(pagetop, text, href) {
+    function createLink(container, text, href) {
         const link = document.createElement('a');
         link.href = href;
         link.textContent = text;
-        pagetop.appendChild(document.createTextNode(' | '));
-        pagetop.appendChild(link);
+
+        // we use link.pathname to not mix with the queries when adding active status
+        if (link.pathname === window.location.pathname) {
+            link.classList.add('active');
+        }
+        if (container.childNodes.length > 0) {
+            container.appendChild(document.createTextNode(' | '));
+        }
+        container.appendChild(link);
     }
 
-    // Function to move the top menu to the bottom and add links
-    function moveTopMenuToBottom(pagetop) {
-        const yclinks = document.createElement('span');
-        yclinks.className = 'yclinks';
-        yclinks.innerHTML = pagetop.innerHTML;
-        pagetop.innerHTML = '';
-
-        const footer = document.createElement('div');
-        footer.style.padding = '20px';
-        footer.appendChild(yclinks);
-        document.body.appendChild(footer);
-
-        return yclinks;
-    }
-
-    // Function to add theme switcher
-    function addThemeSwitcher(footer) {
-        const themeSwitcher = document.createElement('select');
-        themeSwitcher.innerHTML = `
-            <option value="newDark">New Dark</option>
-            <option value="darkTheme">Dark Theme</option>
-        `;
-        themeSwitcher.value = localStorage.getItem('hn-theme') || 'newDark';
-        themeSwitcher.onchange = function() {
-            localStorage.setItem('hn-theme', themeSwitcher.value);
-            location.reload();
-        };
-
-        const themeSwitcherWrapper = document.createElement('span');
-        themeSwitcherWrapper.style.display = 'block';
-        themeSwitcherWrapper.style.marginTop = '10px';
-        themeSwitcherWrapper.style.color = '#ededed';
-        themeSwitcherWrapper.textContent = 'Select Theme: ';
-        themeSwitcherWrapper.appendChild(themeSwitcher);
-        footer.appendChild(themeSwitcherWrapper);
+    // Function to build the menu
+    function buildMenu(container, userId) {
+        createLink(container, 'Hacker News', '/');
+        createLink(container, 'active', '/active');
+        createLink(container, 'best', '/best');
+        createLink(container, 'threads', `/threads?id=${userId}`);
+        createLink(container, 'ask', '/ask');
+        createLink(container, 'show', '/show');
+        createLink(container, 'past', '/front');
+        createLink(container, 'submit', '/submit');
     }
 
     // Function to modify the navigation links
     function modifyNav() {
-        const pagetop = document.querySelector('span.pagetop');
+        const pagetop = document.querySelector('.pagetop');
         if (pagetop) {
-            removeLinkByHref(pagetop, 'submit');
-            removeLinkByHref(pagetop, 'jobs');
+            // Find the user id for the threads link before clearing pagetop
+            const userLink = pagetop.querySelector('a[href^="threads?id="]');
+            const userId = userLink ? userLink.getAttribute('href').split('=')[1] : '';
 
-            const yclinks = moveTopMenuToBottom(pagetop);
-            const path = window.location.pathname;
-
-            if (path !== '/best') createLink(yclinks, 'best', 'best');
-            if (path !== '/active') createLink(yclinks, 'active', 'active');
-
-            addThemeSwitcher(document.body.lastElementChild);
-            observer.disconnect();
+            pagetop.innerHTML = ''; // Clear existing links
+            pagetop.classList.add('menu');
+            buildMenu(pagetop, userId);
         }
     }
 
-    // Create a MutationObserver to watch for changes in the DOM
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.addedNodes.length) {
-                modifyNav();
-            }
+    // Function to add the theme switcher
+    function addThemeSwitcher() {
+        const switcherSpan = document.createElement('span');
+        const bottomContainer = document.querySelector('.yclinks');
+
+        switcherSpan.className = 'theme_switcher';
+        switcherSpan.style.display = 'block';
+        switcherSpan.style.marginTop = '10px';
+
+        const select = document.createElement('select');
+        select.innerHTML = `
+            <option value="darkNavy">Deep Navy</option>
+            <option value="blackTheme">Black</option>
+        `;
+        select.value = localStorage.getItem('hn-theme') || 'darkNavy';
+        select.addEventListener('change', () => {
+            const selectedTheme = select.value;
+            localStorage.setItem('hn-theme', selectedTheme);
+            applyTheme(selectedTheme);
         });
-    });
 
-    // Start observing the document body for added nodes
-    observer.observe(document.body, { childList: true, subtree: true });
+        switcherSpan.appendChild(document.createTextNode('Theme: '));
+        switcherSpan.appendChild(select);
 
-    // Apply the saved theme or default to newDark
-    const savedTheme = localStorage.getItem('hn-theme') || 'newDark';
+        bottomContainer.appendChild(switcherSpan);
+    }
+
+    // Apply the saved theme on load
+    const savedTheme = localStorage.getItem('hn-theme') || 'darkNavy';
+    console.log(savedTheme);
     applyTheme(savedTheme);
+
+    // Modify navigation and add theme switcher
     modifyNav();
+    addThemeSwitcher();
 })();
